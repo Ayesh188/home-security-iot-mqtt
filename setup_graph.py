@@ -12,13 +12,11 @@ driver = GraphDatabase.driver(URI, auth=(USER, PASSWORD),
 driver.verify_connectivity()
 print("Connected to Neo4j")
 
-# 1. Create the house
 driver.execute_query(
     "MERGE (h:House {id: $house})",
     house=HOUSE, database_=DATABASE,
 )
 
-# 2. Create a central hub that all sensors connect to
 driver.execute_query(
     """
     MATCH (h:House {id: $house})
@@ -28,7 +26,6 @@ driver.execute_query(
     house=HOUSE, database_=DATABASE,
 )
 
-# 3. Create the rooms and the sensors inside each room
 for room in ROOMS:
     driver.execute_query(
         """
@@ -53,7 +50,6 @@ for room in ROOMS:
 
 print("Graph created")
 
-# 4. Test question: which devices are in the kitchen?
 records, _, _ = driver.execute_query(
     """
     MATCH (:Room {name: 'kitchen'})-[:HAS_DEVICE]->(d:Device)
