@@ -7,12 +7,12 @@ import paho.mqtt.client as mqtt
 
 BROKER, PORT = "localhost", 1883
 QOS = 1
-COMMIT_EVERY = 100               # 1 = save every message, 100 = save in batches
-HOUSES_LIST = [1, 5, 20, 50]    # number of simulated houses to test
-DURATION = 10                   # seconds of sending in each test
-GRACE = 60                      # extra seconds to let the system catch up
-MSGS_PER_HOUSE_PER_SEC = 4.5    # 3 rooms x 3 sensors every 2 seconds
-OK_LATENCY_MS = 500             # "keeps up" means average latency below this
+COMMIT_EVERY = 100              
+HOUSES_LIST = [1, 5, 20, 50]   
+DURATION = 10                 
+GRACE = 60                      
+MSGS_PER_HOUSE_PER_SEC = 4.5    
+OK_LATENCY_MS = 500             
 ROOMS = ["kitchen", "living_room", "bedroom"]
 SENSORS = ["temperature", "smoke", "gas"]
 
@@ -22,7 +22,7 @@ db.execute("""CREATE TABLE readings (
     id INTEGER PRIMARY KEY AUTOINCREMENT, value REAL, sent_at REAL)""")
 db.commit()
 
-# State of the current test (reset before every test)
+
 state = {"run": 0, "expected": 0, "received": 0, "latencies": []}
 ready = threading.Event()   # set when the listener is subscribed
 done = threading.Event()    # set when all messages of a test have arrived
@@ -70,8 +70,8 @@ sender.loop_start()
 
 
 def run_test(houses):
-    offered = houses * MSGS_PER_HOUSE_PER_SEC     # messages per second
-    n = int(offered * DURATION)                   # messages in this test
+    offered = houses * MSGS_PER_HOUSE_PER_SEC     
+    n = int(offered * DURATION)                   
 
     state["run"] += 1
     state["expected"] = n
