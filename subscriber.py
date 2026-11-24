@@ -30,9 +30,9 @@ CREATE TABLE IF NOT EXISTS readings (
 )""")
 db.commit()
 
-TEMP_LIMIT = 60      # degrees C
-GAS_LIMIT = 300      # ppm
-last_temp = {}       # last temperature seen per room, used for the fire rule
+TEMP_LIMIT = 60      
+GAS_LIMIT = 300      
+last_temp = {}      
 
 
 def check_alerts(house, room, sensor, data):
@@ -43,7 +43,7 @@ def check_alerts(house, room, sensor, data):
             return "HIGH_TEMPERATURE"
     elif sensor == "smoke" and data["detected"]:
         if last_temp.get(room, 0) > TEMP_LIMIT:
-            return "FIRE"           # smoke + high temperature
+            return "FIRE"          
         return "SMOKE"
     elif sensor == "gas" and data["value"] > GAS_LIMIT:
         return "GAS_LEAK"
@@ -77,7 +77,7 @@ def save_alert_in_graph(house, room, alert_type, timestamp):
 
 def on_connect(client, userdata, flags, reason_code, properties):
     print("Connected to broker:", reason_code)
-    client.subscribe("home/+/+/+", qos=1)   # house / room / sensor
+    client.subscribe("home/+/+/+", qos=1)   
 
 
 def on_message(client, userdata, msg):
@@ -87,12 +87,10 @@ def on_message(client, userdata, msg):
     except (ValueError, UnicodeDecodeError):
         print("Invalid message ignored:", msg.topic)
         return
-
-    # Ignore our own alert messages coming back from the broker
+ 
     if room == "alerts":
         return
 
-    # Store numeric readings in SQL
     if sensor in ("temperature", "gas"):
         db.execute(
             "INSERT INTO readings (house, room, sensor, value, timestamp) "
@@ -101,11 +99,11 @@ def on_message(client, userdata, msg):
         )
         db.commit()
 
-    # Store intrusion events in MongoDB
+    
     if sensor == "intrusion":
         safe_mongo_insert(events, {"house": house, "room": room, **data})
 
-    # Check alert rules
+    
     alert = check_alerts(house, room, sensor, data)
     if alert:
         print(f"*** ALERT {alert} in {house}/{room} -> {data}")
