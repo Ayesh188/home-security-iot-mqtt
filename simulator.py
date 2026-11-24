@@ -24,10 +24,9 @@ def publish(topic, payload):
 try:
     while True:
         for room in ROOMS:
-            # Normal readings, with a small chance of a dangerous value
             temp = random.gauss(24, 2)
             if random.random() < 0.02:
-                temp = random.uniform(60, 90)   # simulated fire
+                temp = random.uniform(60, 90)   
             publish(f"home/{HOUSE}/{room}/temperature",
                     {"value": round(temp, 1), "unit": "C"})
 
@@ -36,7 +35,7 @@ try:
 
             gas = random.gauss(50, 10)
             if random.random() < 0.01:
-                gas = random.uniform(400, 800)  # simulated gas leak
+                gas = random.uniform(400, 800)  
             publish(f"home/{HOUSE}/{room}/gas",
                     {"value": round(gas, 1), "unit": "ppm"})
 
