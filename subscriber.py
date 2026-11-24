@@ -10,17 +10,17 @@ from config import (MONGO_URI, NEO4J_URI, NEO4J_USER,
 
 BROKER, PORT = "localhost", 1883
 
-# ---------- MongoDB (Atlas) ----------
+
 mongo = MongoClient(MONGO_URI, serverSelectionTimeoutMS=5000)
 mongo_db = mongo["home_security"]
 events = mongo_db["intrusion_events"]
 alerts = mongo_db["alerts"]
 
-# ---------- Neo4j (AuraDB) ----------
+
 graph = GraphDatabase.driver(NEO4J_URI, auth=(NEO4J_USER, NEO4J_PASSWORD),
                              max_transaction_retry_time=3)
 
-# ---------- SQL database (SQLite) ----------
+
 db = sqlite3.connect("home_security.db", check_same_thread=False)
 db.execute("""
 CREATE TABLE IF NOT EXISTS readings (
@@ -30,7 +30,6 @@ CREATE TABLE IF NOT EXISTS readings (
 )""")
 db.commit()
 
-# ---------- Alert rules ----------
 TEMP_LIMIT = 60      # degrees C
 GAS_LIMIT = 300      # ppm
 last_temp = {}       # last temperature seen per room, used for the fire rule
@@ -53,8 +52,6 @@ def check_alerts(house, room, sensor, data):
     return None
 
 
-# ---------- Safe database functions ----------
-# If one database fails, the others must keep working.
 def safe_mongo_insert(collection, document):
     """Save to MongoDB, but never crash the subscriber if it fails."""
     try:
@@ -78,8 +75,6 @@ def save_alert_in_graph(house, room, alert_type, timestamp):
     except Exception as error:
         print("Neo4j error:", str(error)[:120])
 
-
-# ---------- MQTT callbacks ----------
 def on_connect(client, userdata, flags, reason_code, properties):
     print("Connected to broker:", reason_code)
     client.subscribe("home/+/+/+", qos=1)   # house / room / sensor
