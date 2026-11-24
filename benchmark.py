@@ -24,8 +24,8 @@ db.commit()
 
 
 state = {"run": 0, "expected": 0, "received": 0, "latencies": []}
-ready = threading.Event()   # set when the listener is subscribed
-done = threading.Event()    # set when all messages of a test have arrived
+ready = threading.Event()   
+done = threading.Event()    
 
 def on_connect(client, userdata, flags, reason_code, properties):
     client.subscribe("bench/#", qos=QOS)
@@ -39,7 +39,7 @@ def on_message(client, userdata, msg):
     try:
         data = json.loads(msg.payload.decode())
         if data["run"] != state["run"]:
-            return   # late message from an earlier test: ignore it
+            return   
         state["latencies"].append(time.time() - data["sent_at"])
         db.execute("INSERT INTO readings (value, sent_at) VALUES (?, ?)",
                    (data["value"], data["sent_at"]))
@@ -85,7 +85,6 @@ def run_test(houses):
           f"at {offered:.1f} msg/s for {DURATION} s...")
     start = time.time()
     for i in range(n):
-        # Message i is due at start + i/offered: this spreads them evenly
         wait = start + i / offered - time.time()
         if wait > 0:
             time.sleep(wait)
