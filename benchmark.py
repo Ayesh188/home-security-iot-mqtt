@@ -16,7 +16,6 @@ OK_LATENCY_MS = 500             # "keeps up" means average latency below this
 ROOMS = ["kitchen", "living_room", "bedroom"]
 SENSORS = ["temperature", "smoke", "gas"]
 
-# ---------- Separate test database ----------
 db = sqlite3.connect("benchmark.db", check_same_thread=False)
 db.execute("DROP TABLE IF EXISTS readings")
 db.execute("""CREATE TABLE readings (
@@ -28,8 +27,6 @@ state = {"run": 0, "expected": 0, "received": 0, "latencies": []}
 ready = threading.Event()   # set when the listener is subscribed
 done = threading.Event()    # set when all messages of a test have arrived
 
-
-# ---------- Listener (plays the role of the subscriber) ----------
 def on_connect(client, userdata, flags, reason_code, properties):
     client.subscribe("bench/#", qos=QOS)
 
@@ -67,7 +64,6 @@ if not ready.wait(timeout=10):
     print("PROBLEM: the listener never subscribed. Is Mosquitto running?")
     raise SystemExit
 
-# ---------- Sender (plays the role of the sensors in all houses) ----------
 sender = mqtt.Client(mqtt.CallbackAPIVersion.VERSION2)
 sender.connect(BROKER, PORT)
 sender.loop_start()
@@ -100,7 +96,7 @@ def run_test(houses):
                               "sent_at": time.time()})
         sender.publish(f"bench/house{house}/{room}/{sensor}", payload, qos=QOS)
 
-    # Wait until everything is processed, or give up after GRACE seconds
+    
     deadline = time.time() + GRACE
     while not done.is_set() and time.time() < deadline:
         done.wait(timeout=0.5)
@@ -118,8 +114,6 @@ def run_test(houses):
         "verdict": "OK" if keeps_up else "FALLING BEHIND",
     }
 
-
-# ---------- Run all tests ----------
 print(f"QoS {QOS}, commit every {COMMIT_EVERY} message(s)")
 results = [run_test(h) for h in HOUSES_LIST]
 
